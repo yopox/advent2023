@@ -1,4 +1,3 @@
-use itertools::Itertools;
 advent_of_code::solution!(2);
 
 struct Game {
@@ -41,9 +40,9 @@ pub fn part_one(input: &str) -> Option<usize> {
         .lines()
         .map(|line| Game::from(line))
         .filter(|game|
-            game.played.iter().max_by_key(|(r, g, b)| *r).unwrap_or(&(0, 0, 0)).0 <= r_max
-                && game.played.iter().max_by_key(|(r, g, b)| *g).unwrap_or(&(0, 0, 0)).1 <= g_max
-                && game.played.iter().max_by_key(|(r, g, b)| *b).unwrap_or(&(0, 0, 0)).2 <= b_max
+            game.played.iter().max_by_key(|(r, _, _)| *r).unwrap_or(&(0, 0, 0)).0 <= r_max
+                && game.played.iter().max_by_key(|(_, g, _)| *g).unwrap_or(&(0, 0, 0)).1 <= g_max
+                && game.played.iter().max_by_key(|(_, _, b)| *b).unwrap_or(&(0, 0, 0)).2 <= b_max
         )
         .map(|game| game.id)
         .sum::<usize>()
@@ -57,9 +56,9 @@ pub fn part_two(input: &str) -> Option<usize> {
         .lines()
         .map(|line| Game::from(line))
         .map(|game|
-            (game.played.iter().max_by_key(|(r, g, b)| *r).unwrap_or(&(0, 0, 0)).0,
-             game.played.iter().max_by_key(|(r, g, b)| *g).unwrap_or(&(0, 0, 0)).1,
-             game.played.iter().max_by_key(|(r, g, b)| *b).unwrap_or(&(0, 0, 0)).2, )
+            (game.played.iter().max_by_key(|(r, _, _)| *r).unwrap_or(&(0, 0, 0)).0,
+             game.played.iter().max_by_key(|(_, g, _)| *g).unwrap_or(&(0, 0, 0)).1,
+             game.played.iter().max_by_key(|(_, _, b)| *b).unwrap_or(&(0, 0, 0)).2, )
         )
         .map(|(r, g, b)| r * g * b)
         .sum::<usize>()

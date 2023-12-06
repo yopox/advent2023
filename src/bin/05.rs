@@ -5,8 +5,6 @@ use itertools::Itertools;
 advent_of_code::solution!(5);
 
 struct Converter {
-    from: String,
-    to: String,
     rules: Vec<Rule>,
 }
 
@@ -71,12 +69,9 @@ impl Rule {
 impl From<&str> for Converter {
     fn from(value: &str) -> Self {
         let mut lines = value.lines();
-        if let Some(header) = lines.next() {
-            let (from, to) = header
-                .split_once(" ").unwrap().0
-                .split_once("-to-").unwrap();
+        if let Some(_) = lines.next() {
             let rules = lines.map(|l| Rule::from(l)).collect_vec();
-            Self { from: from.to_string(), to: to.to_string(), rules }
+            Self { rules }
         } else {
             panic!("Malformed map");
         }
@@ -146,9 +141,7 @@ pub fn part_two(input: &str) -> Option<usize> {
 
 #[test]
 fn test() {
-    ///60 56 37
-    ///56 93 4
-    let r = convert_seed_range(&vec![Converter { from: "".to_string(), to: "".to_string(), rules: vec![
+    let r = convert_seed_range(&vec![Converter { rules: vec![
         Rule { start_1: 56, start_2: 60, len: 37, },
         Rule { start_1: 93, start_2: 56, len: 4, },
     ],  }], &(90..99));

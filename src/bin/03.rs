@@ -34,7 +34,7 @@ fn adjacent(n: &Number, s: &Symbol) -> bool {
     (n.line - 1..=n.line + 1).contains(&s.line) && (n.start - 1..=n.end + 1).contains(&s.pos)
 }
 
-fn is_part(mut symbols: &Vec<Symbol>, n: &Number) -> bool {
+fn is_part(symbols: &Vec<Symbol>, n: &Number) -> bool {
     symbols
         .iter()
         .find(|s| adjacent(n, *s))
@@ -57,7 +57,6 @@ fn process_input(input: &str, mut numbers: &mut Vec<Number>, symbols: &mut Vec<S
             }
         }
         process_number(&mut numbers, i, line.len(), &mut nb);
-        nb = None;
     }
 }
 
