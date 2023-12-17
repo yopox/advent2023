@@ -1,6 +1,9 @@
 use std::ops::Range;
+use std::sync::RwLock;
 
 use itertools::Itertools;
+use rayon::iter::ParallelIterator;
+use rayon::prelude::IntoParallelIterator;
 
 advent_of_code::solution!(17);
 
@@ -78,18 +81,18 @@ pub fn part_one(input: &str) -> Option<usize> {
 }
 
 fn calculate_min_distance(numbers: Vec<Vec<usize>>, range: Range<usize>) -> Option<usize> {
-    let mut distances: Vec<Vec<Dist>> = vec![vec![Dist::default(); numbers[0].len()]; numbers.len()];
-    distances[0][0] = Dist { up: 0, right: 0, down: 0, left: 0, };
-    let mut changed = true;
+    let mut distances: Vec<Vec<RwLock<Dist>>> = (0..numbers.len()).map(|_| (0..numbers[0].len()).map(|_| RwLock::new(Dist::default())).collect_vec()).collect_vec();
+    if let Ok(mut d) = distances[0][0].write() { d.up = 0; d.down = 0; d.left = 0; d.right = 0; };
+    let mut changed = RwLock::new(true);
 
-    while changed {
-        let mut new_dist = distances.clone();
-        changed = false;
-        for y in 0..numbers.len() {
-            for x in 0..numbers[0].len() {
+    while *changed.read().unwrap() {
+        let new_dist = distances.iter().map(|l| l.iter().map(|lock| RwLock::new(lock.read().unwrap().clone())).collect_vec()).collect_vec();
+        changed = RwLock::new(false);
+        (0..numbers.len()).into_par_iter().for_each(|y| {
+            (0..numbers[0].len()).into_par_iter().for_each(|x| {
                 let dist = &distances[y][x];
                 for dir in [Dir::Up, Dir::Down, Dir::Left, Dir::Right] {
-                    let total = dist.get(&dir);
+                    let total = dist.read().unwrap().get(&dir);
                     if total == usize::MAX { continue }
 
                     let mut dirs = match dir {
@@ -113,19 +116,20 @@ fn calculate_min_distance(numbers: Vec<Vec<usize>>, range: Range<usize>) -> Opti
                             let d = (1..=amount).map(|j|
                                 numbers[(y as isize + dy * j as isize) as usize][(x as isize + dx * j as isize) as usize]
                             ).sum::<usize>() + total;
-                            if distances[y1][x1].get(&d1) > d {
-                                new_dist[y1][x1].set(&d1, d);
-                                changed = true;
+                            if distances[y1][x1].read().unwrap().get(&d1) > d {
+                                new_dist[y1][x1].write().unwrap().set(&d1, d);
+                                if !*changed.read().unwrap() { let mut c = changed.write().unwrap(); *c = true; }
                             }
                         }
                     }
                 }
-            }
-        }
+            });
+        });
         distances = new_dist;
     }
 
-    Some(distances.last().unwrap().last().unwrap().min())
+    let shortest_dist = Some(distances.last().unwrap().last().unwrap().read().unwrap().min());
+    shortest_dist
 }
 
 pub fn part_two(input: &str) -> Option<usize> {
